@@ -1,0 +1,47 @@
+name: Sentinel Report - Gitify
+
+on:
+  repository_dispatch:
+    types: generate-sentinel-report-gitify
+
+jobs:
+
+  build-and-test:
+    name: Build Project
+    runs-on: ${{ github.event.client_payload.hostOS }}
+    continue-on-error: true
+    steps:
+      - name: Check Out Repository
+        uses: actions/checkout@v2
+        with:
+          name: manosim/gitify
+
+      - name: Update Electron Version
+        uses: codebytere/update-electron-version@v1
+
+      - name: Install Dependencies
+        run: |
+          yarn install
+          echo "Installed Electron $(./node_modules/.bin/electron --version)"
+
+      - name: Run Tests
+        run: yarn jest --json --outputFile=report.json
+
+      - name: Upload Test Report
+        uses: actions/upload-artifact@v1
+        with:
+          name: report
+          path: report.json
+
+  send-data:
+    name: Generate Report
+    needs: build-and-test
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download Report
+        uses: actions/download-artifact@v1
+        with:
+          name: report
+
+      - name: Send Data to Sentinel
+        uses: codebytere/sentinel-client@v1

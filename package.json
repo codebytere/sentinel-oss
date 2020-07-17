@@ -1,0 +1,16 @@
+{
+  "name": "sentinel-oss",
+  "version": "1.0.0",
+  "description": "",
+  "main": "src/index.js",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/codebytere/sentinel-oss.git"
+  },
+  "author": "Shelley Vohr <shelley.vohr@gmail.com>",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/codebytere/sentinel-oss/issues"
+  },
+  "homepage": "https://github.com/codebytere/sentinel-oss#readme",
+}
