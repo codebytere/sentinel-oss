@@ -12,7 +12,7 @@ jobs:
       - name: Check Out Repository
         uses: actions/checkout@v2
         with:
-          name: electron/fiddle
+          repository: electron/fiddle
 
       - name: Update Electron Version
         uses: codebytere/update-electron-version@master

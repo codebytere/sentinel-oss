@@ -14,7 +14,7 @@ jobs:
       - name: Check Out Repository
         uses: actions/checkout@v2
         with:
-          name: manosim/gitify
+          repository: manosim/gitify
 
       - name: Update Electron Version
         uses: codebytere/update-electron-version@v1
