@@ -44,4 +44,6 @@ jobs:
           name: report
 
       - name: Send Data to Sentinel
-        uses: codebytere/sentinel-client@v1
+        uses: codebytere/sentinel-client@master
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
