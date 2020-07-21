@@ -1,0 +1,118 @@
+name: Sentinel Report - VSCode
+
+on:
+  repository_dispatch:
+    types: generate-sentinel-report-vscode
+
+jobs:
+  build-project:
+    name: Build and Test
+    runs-on: ${{ github.event.client_payload.hostOS }}
+    continue-on-error: true
+    steps:
+      - name: Check Out Repository
+        uses: actions/checkout@v2
+        with:
+          repository: manosim/gitify
+
+      - name: Install Linux Dependencies
+        if: runner.os == 'Linux'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libxkbfile-dev pkg-config libsecret-1-dev libxss1 dbus xvfb libgtk-3-0 libgbm1
+          sudo cp build/azure-pipelines/linux/xvfb.init /etc/init.d/xvfb
+          sudo chmod +x /etc/init.d/xvfb
+          sudo update-rc.d xvfb defaults
+          sudo service xvfb start
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v1
+        with:
+          node-version: 12
+
+      - name: Update Electron Version
+        uses: codebytere/update-electron-version@v1
+      - uses: actions/setup-python@v1
+        with:
+          python-version: '2.x'
+
+      - name: Install Dependencies
+        run: yarn install
+        env:
+          # We need to provide the token ourselves or vscode-ripgrep hits ratelimits.
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Download Electron
+        run: |
+          if [ "$RUNNER_OS" == "Windows" ]; then
+            yarn electron
+          else
+            yarn electron x64
+          fi
+          echo "Downloaded Electron $(cat .build/electron/version)"
+
+      - name: Compile Sources
+        run: yarn compile
+
+      - name: Download Built-in Extensions
+        run: yarn download-builtin-extensions
+
+      - name: Rebuild Native Node Modules
+        run: |
+          electron_version=${{ github.event.client_payload.versionQualifier }}
+          abi=$(ELECTRON_RUN_AS_NODE=1 node_modules/.bin/electron -p "process.versions.modules")
+          $(npm bin)/electron-rebuild --version "$electron_version" --force-abi "$abi" --force
+
+      - name: Run Unit Tests (Electron)
+        timeout-minutes: 30
+        continue-on-error: true
+        run: |
+          if [ "$RUNNER_OS" == "Linux" ]; then
+            DISPLAY=:10 ./scripts/test.sh --tfs "Unit Tests"
+          elif [ "$RUNNER_OS" == "Windows" ]; then
+            .\scripts\test.bat --tfs "Unit Tests"
+          elif [ "$RUNNER_OS" == "macOS" ]; then
+            ./scripts/test.sh --tfs "Unit Tests"
+          else
+            echo "$RUNNER_OS not supported"
+            exit 1
+          fi
+
+      - name: Run Integration Tests (Electron)
+        timeout-minutes: 30
+        continue-on-error: true
+        run: |
+          if [ "$RUNNER_OS" == "Linux" ]; then
+            DISPLAY=:10 ./scripts/test-integration.sh --tfs "Integration Tests"
+          elif [ "$RUNNER_OS" == "Windows" ]; then
+            .\scripts\test-integration.bat --tfs "Integration Tests"
+          elif [ "$RUNNER_OS" == "macOS" ]; then
+            ./scripts/test-integration.sh "Integration Tests"
+          else
+            echo "$RUNNER_OS not supported"
+            exit 1
+          fi
+
+      - name: Upload Test Report
+        timeout-minutes: 30
+        continue-on-error: true
+        uses: actions/upload-artifact@v1
+        with:
+          name: report
+          path: report.json
+
+  send-data:
+    name: Generate Report
+    needs: build-project
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download Report
+        continue-on-error: true
+        uses: actions/download-artifact@v1
+        with:
+          name: report
+
+      - name: Send Data to Sentinel
+        uses: codebytere/sentinel-client@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
