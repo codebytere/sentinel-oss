@@ -68,11 +68,12 @@ jobs:
         continue-on-error: true
         run: |
           if [ "$RUNNER_OS" == "Linux" ]; then
-            DISPLAY=:10 ./scripts/test.sh --tfs "Unit Tests"
+            export DISPLAY=:10 
+            ./scripts/test.sh --reporter=json "Unit Tests" > unit.json
           elif [ "$RUNNER_OS" == "Windows" ]; then
-            .\scripts\test.bat --tfs "Unit Tests"
+            .\scripts\test.bat --reporter=json  "Unit Tests" > unit.json
           elif [ "$RUNNER_OS" == "macOS" ]; then
-            ./scripts/test.sh --tfs "Unit Tests"
+            ./scripts/test.sh --reporter=json "Unit Tests" > unit.json
           else
             echo "$RUNNER_OS not supported"
             exit 1
@@ -83,15 +84,21 @@ jobs:
         continue-on-error: true
         run: |
           if [ "$RUNNER_OS" == "Linux" ]; then
-            DISPLAY=:10 ./scripts/test-integration.sh --tfs "Integration Tests"
+            export DISPLAY=:10 
+            ./scripts/test-integration.sh --reporter=json "Integration Tests" > integration.json
           elif [ "$RUNNER_OS" == "Windows" ]; then
-            .\scripts\test-integration.bat --tfs "Integration Tests"
+            .\scripts\test-integration.bat --reporter=json "Integration Tests" > integration.json
           elif [ "$RUNNER_OS" == "macOS" ]; then
-            ./scripts/test-integration.sh "Integration Tests"
+            ./scripts/test-integration.sh --reporter=json "Integration Tests" > integration.json
           else
             echo "$RUNNER_OS not supported"
             exit 1
           fi
+      
+      - name: Clean Test Reports
+        run: |
+          url=https://raw.githubusercontent.com/codebytere/sentinel-oss/master/vscode-report-parse.js
+          curl $url | node
 
       - name: Upload Test Report
         timeout-minutes: 30
