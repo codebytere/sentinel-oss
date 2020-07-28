@@ -51,6 +51,8 @@ jobs:
             yarn electron x64
           fi
           echo "Downloaded Electron $(cat .build/electron/version)"
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Compile Sources
         run: yarn compile
@@ -61,8 +63,7 @@ jobs:
       - name: Rebuild Native Node Modules
         run: |
           electron_version=${{ github.event.client_payload.versionQualifier }}
-          abi=$(ELECTRON_RUN_AS_NODE=1 node_modules/.bin/electron -p "process.versions.modules")
-          $(npm bin)/electron-rebuild --version "$electron_version" --force-abi "$abi" --force
+          npx electron-rebuild --version "$electron_version"
 
       - name: Run Unit Tests (Electron)
         timeout-minutes: 30
