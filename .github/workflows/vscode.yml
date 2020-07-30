@@ -13,8 +13,7 @@ jobs:
       - name: Check Out Repository
         uses: actions/checkout@v2
         with:
-          repository: codebytere/vscode
-          ref: 3770547cc1e0efdbf2411f42158a904d37438a30
+          repository: microsoft/vscode
 
       - name: Install Linux Dependencies
         if: runner.os == 'Linux'
