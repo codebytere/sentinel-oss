@@ -14,8 +14,9 @@ jobs:
         with:
           repository: electron/fiddle
 
-      - name: Update Electron Version
-        uses: codebytere/update-electron-version@master
+      - name: Set Electron Version
+        run: 
+          export ELECTRON_CUSTOM_VERSION=${{ github.event.client_payload.versionQualifier }}
 
       - name: Install Dependencies
         run: |

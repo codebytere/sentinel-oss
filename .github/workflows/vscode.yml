@@ -30,8 +30,10 @@ jobs:
         with:
           node-version: 12
 
-      - name: Update Electron Version
-        uses: codebytere/update-electron-version@v1
+      - name: Set Electron Version
+        run: 
+          export ELECTRON_CUSTOM_VERSION=${{ github.event.client_payload.versionQualifier }}
+
       - uses: actions/setup-python@v1
         with:
           python-version: '2.x'
