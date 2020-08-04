@@ -17,6 +17,7 @@ jobs:
           repository: manosim/gitify
 
       - name: Set Electron Version
+        shell: bash
         run: 
           export ELECTRON_CUSTOM_VERSION=${{ github.event.client_payload.versionQualifier }}
 
