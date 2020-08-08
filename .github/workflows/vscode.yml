@@ -33,7 +33,8 @@ jobs:
       - name: Set Electron Version
         shell: bash
         run: 
-          export ELECTRON_CUSTOM_VERSION=${{ github.event.client_payload.versionQualifier }}
+          export ELECTRON_CUSTOM_VERSION="${{ github.event.client_payload.versionQualifier }}"
+          sed -i.bak 's/target \"[^\"]*\"/target "'${ELECTRON_CUSTOM_VERSION}'"/g' .yarnrc
 
       - uses: actions/setup-python@v1
         with:
