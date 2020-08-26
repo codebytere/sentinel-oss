@@ -32,7 +32,7 @@ jobs:
 
       - name: Set Electron Version
         shell: bash
-        run: 
+        run: |
           export ELECTRON_CUSTOM_VERSION="${{ github.event.client_payload.versionQualifier }}"
           sed -i.bak 's/target \"[^\"]*\"/target "'${ELECTRON_CUSTOM_VERSION}'"/g' .yarnrc
 
